@@ -26,14 +26,14 @@ try:
 
     # cr.execute("ALTER TABLE tbl ADD COLUMN string4 ENUM('python', 'java', 'c++', 'html' )")
 
-    cr.execute("INSERT INTO tbl (string4) VALUES (%s)", ("python",))
+    cr.execute("INSERT INTO tbl (string4, string5, string2, string3,) VALUES (%s,%s,%s,%s)", ("python","google,Brave", "This is a text", img))
 
     # cr.execute("ALTER TABLE tbl ADD COLUMN string5 SET('google', 'Brave', 'Firefox', 'Edge')")
 
-    cr.execute("INSERT INTO tbl (string5) VALUES (%s)", ("google,Brave",))
+    # cr.execute("INSERT INTO tbl (string5) VALUES (%s)", ("google,Brave",))
 
 
-    cr.execute("INSERT INTO tbl (string2, string3) VALUES (%s, %s)", ("This is a text", img))
+    # cr.execute("INSERT INTO tbl (string2, string3) VALUES (%s, %s)", ("This is a text", img))
 
     for i in range(10):
 
