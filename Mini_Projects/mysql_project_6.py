@@ -20,7 +20,7 @@ try:
 
     cr.execute("INSERT INTO departments (name) VALUES (%s)", ("HR",))
 
-    cr.execute("INSERT INTO employees (name, salary, department_id) VALUES (%s, %s, %s)", ("Alice", 50000.00, 11))
+    cr.execute("INSERT INTO employees (name, salary, department_id) VALUES (%s, %s, %s)", ("Alice", 50000.00, 1))
 
     db.commit()
 
