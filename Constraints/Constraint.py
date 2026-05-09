@@ -21,8 +21,10 @@ try:
 
     db.commit()
 
-    db.close()
-
 except sql.Error as er:
 
     print("Error ", er)
+
+finally:
+    if db:
+        db.close()
