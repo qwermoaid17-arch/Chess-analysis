@@ -19,40 +19,65 @@ try:
 
     cr.execute("CREATE TABLE IF NOT EXISTS ordere (order_id INT NOT NULL PRIMARY KEY, price DECIMAL(10, 2), client_id INT NOT NULL)")
 
-    # cr.execute("ALTER TABLE ordere ADD CONSTRAINT ordrere FOREIGN KEY (client_id) REFERENCES client(id) ON UPDATE CASCADE ON DELETE CASCADE")
+    def ALTER_FOREIGN_KEY(cr):
 
-    # cr.execute("INSERT INTO client (id, username, email) VALUES (%s, %s, %s)", (1, "maoyed", "john.doe@example.com"))
+        cr.execute("ALTER TABLE ordere ADD CONSTRAINT ordrere FOREIGN KEY (client_id) REFERENCES client(id) ON UPDATE CASCADE ON DELETE CASCADE")
 
-    # cr.execute("INSERT INTO client (id, username, email) VALUES (%s, %s, %s)", (2, "ahmed", "ahmed@example.com"))
+    def INSERT_client(cr):
 
-    # cr.execute("INSERT INTO client (id, username, email) VALUES (%s, %s, %s)", (3, "alaa", "alaa@example.com"))
+        cr.execute("INSERT INTO client (id, username, email) VALUES (%s, %s, %s)", (1, "maoyed", "john.doe@example.com"))
 
-    # cr.execute("INSERT INTO client (id, username, email) VALUES (%s, %s, %s)", (100, "mohamed", "mohamed@example.com"))
+        cr.execute("INSERT INTO client (id, username, email) VALUES (%s, %s, %s)", (2, "ahmed", "ahmed@example.com"))
 
-    # cr.execute("INSERT INTO ordere (order_id, price, client_id) VALUES (%s, %s, %s)", (1, 100.00, 1))
+        cr.execute("INSERT INTO client (id, username, email) VALUES (%s, %s, %s)", (3, "alaa", "alaa@example.com"))
 
-    # cr.execute("INSERT INTO ordere (order_id, price, client_id) VALUES (%s, %s, %s)", (2, 200.00, 1))
+        cr.execute("INSERT INTO client (id, username, email) VALUES (%s, %s, %s)", (100, "mohamed", "mohamed@example.com"))
 
-    # cr.execute("INSERT INTO ordere (order_id, price, client_id) VALUES (%s, %s, %s)", (3, 50.00, 1))
+    def INSERT_ordere(cr):
 
-    # cr.execute("INSERT INTO ordere (order_id, price, client_id) VALUES (%s, %s, %s)", (4, 150.00, 2))
+        cr.execute("INSERT INTO ordere (order_id, price, client_id) VALUES (%s, %s, %s)", (1, 100.00, 1))
 
-    # cr.execute("INSERT INTO ordere (order_id, price, client_id) VALUES (%s, %s, %s)", (5, 75.00, 2))
+        cr.execute("INSERT INTO ordere (order_id, price, client_id) VALUES (%s, %s, %s)", (2, 200.00, 1))
 
-    # cr.execute("SELECT * FROM ordere join client on client.id = ordere.client_id where client.id = 2")
+        cr.execute("INSERT INTO ordere (order_id, price, client_id) VALUES (%s, %s, %s)", (3, 50.00, 1))
 
-    # for row in cr.fetchall():
+        cr.execute("INSERT INTO ordere (order_id, price, client_id) VALUES (%s, %s, %s)", (4, 150.00, 2))
 
-    #     print("-", row)
+        cr.execute("INSERT INTO ordere (order_id, price, client_id) VALUES (%s, %s, %s)", (5, 75.00, 2))
+    
+    def show_client_orders_1(cr):
 
-    # cr.execute("UPDATE client SET id = %s WHERE username = %s", (50, "maoyed"))
+        cr.execute("SELECT * FROM ordere join client on client.id = ordere.client_id where client.id = 1")
 
-    # cr.execute("DELETE FROM client WHERE username = %s", ("maoyed",))
+        for row in cr.fetchall():
 
-    # cr.execute("UPDATE client SET id = %s WHERE username = %s", (200, "ahmed"))
+            print("-", row)
 
-    cr.execute("DELETE FROM client WHERE username = %s", ("ahmed",))
+    def show_client_orders_2(cr):
 
+        cr.execute("SELECT * FROM ordere join client on client.id = ordere.client_id where client.id = 2")
+
+        for row in cr.fetchall():
+
+            print("-", row)
+
+    def UPDATE_moayed(cr):
+
+        cr.execute("UPDATE client SET id = %s WHERE username = %s", (50, "maoyed"))
+
+    def DELETE_moayed(cr):
+
+        cr.execute("DELETE FROM client WHERE username = %s", ("maoyed",))
+
+    def UPDATE_ahmed(cr):
+
+        cr.execute("UPDATE client SET id = %s WHERE username = %s", (200, "ahmed"))
+
+    def DELETE_ahmed(cr):
+
+        cr.execute("DELETE FROM client WHERE username = %s", ("ahmed",))
+
+    # Calling functions
 
     db.commit()
 
