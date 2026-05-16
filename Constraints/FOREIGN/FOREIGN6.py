@@ -55,7 +55,7 @@ try:
 
         cr.execute("UPDATE user SET id = %s WHERE id = %s", (10, 1))
 
-        cr.execute("UPDATE shops SET shop_id = %s WHERE shop_id = %s", (20, 1))    
+        cr.execute("UPDATE shops SET shop_id = %s WHERE shop_id = %s", (20, 1))
 
     def search(cr):
 
