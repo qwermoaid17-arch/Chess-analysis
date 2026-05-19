@@ -15,7 +15,7 @@ try:
 
     def INSERT_users(cr):
 
-        cr.execute("INSERT INTO users (text) VALUES (%s)", ("€",))
+        cr.execute("INSERT INTO users (text) VALUES (%s)", ("MOAYS",))
 
     def LEN(cr):
 
@@ -29,7 +29,11 @@ try:
 
     def CHAR_LEN(cr):
 
-        cr.execute("SELECT text ,CHAR_LENGTH(text) AS count FROM users")
+        # cr.execute("SELECT text ,CHAR_LENGTH(text) AS count FROM users")
+
+        # cr.execute("SELECT text ,CHAR_LENGTH(text) AS count FROM users ORDER BY CHAR_LENGTH(text) ASC")
+
+        cr.execute("SELECT text ,CHAR_LENGTH(text) AS count FROM users ORDER BY CHAR_LENGTH(text) DESC")
 
         result = cr.fetchall()
 
@@ -41,7 +45,7 @@ try:
 
     # INSERT_users(cr)
 
-    LEN(cr)
+    # LEN(cr)
 
     db.commit()
 
