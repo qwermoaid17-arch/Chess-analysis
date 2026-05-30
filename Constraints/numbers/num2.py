@@ -92,7 +92,7 @@ try:
 
         for row in result:
 
-            print(f"Number: {row[0]}, Ceil: {row[1]}")
+            print(f"Number: {row[0]}, Sqrt: {row[1]}")
 
     def DELETE(cr):
 
