@@ -98,6 +98,10 @@ try:
 
         cr.execute("DELETE FROM num WHERE id BETWEEN  1 AND 20")
 
+    def ALTER(cr):
+
+        cr.execute("ALTER TABLE num CHANGE number number INT(11)")
+
 
 
     #Calling functions :
@@ -115,6 +119,8 @@ try:
     # SELECT_ABS(cr)
 
     SELECT_SQRT(cr)
+
+    ALTER(cr)
 
     db.commit()
 
