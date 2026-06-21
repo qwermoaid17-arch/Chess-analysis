@@ -1,4 +1,8 @@
 import pymysql as sql
+import io
+import requests
+import chess.pgn
+import datetime as dt
 
 
 db = None
@@ -26,7 +30,7 @@ try:
         
             value = int(value)
 
-            if value > 5 or value < 0:
+            if value > 6 or value < 0:
 
                 print("Invalid input. Please enter a number between 0 and 5.")
 
@@ -156,25 +160,38 @@ try:
 
             return False
         
-    # def check_int_search(value):
-        
-    #     try:
-
-
+    def check_symblos(value):
         
 
-    #         value = int(value)
+            if value not in ['#', '>', '<', '=']:
 
-    #         return True
+                return False
+            
+            else:
+
+                return value
+            
+    def check_int_DELETE(value):
+        
+        try:
+
+            if value == "0":
+
+                return value
+            
+            else:
+
+                value = int(value)
+
+                return True
 
         
-    #     except ValueError:
+        except ValueError:
 
-    #         print('Invalid input. Please enter an integer.')
+            print('Invalid input. Please enter an integer.')
 
-    #         return False
+            return False
         
-
 
     def record_match(cr):
         
@@ -358,6 +375,141 @@ try:
 
                 break
 
+    def Automatic_registration(cr):
+
+        while True:
+
+        # 1. Take username from the user
+            username = input("Enter your Lichess username:(0 => exit    ) ")
+
+            if username == "0":
+
+                break
+
+            # 2. Display filtering options menu
+            print("\n--- Choose Filtering Option ---")
+            print("1 => Fetch the last match only")
+            print("2 => Specify the number of recent matches")
+            print("3 => Fetch all matches from today")
+
+            while True:
+
+                how = input("Your choice: (0 => Back) ")
+
+                if how == "0":
+
+                    break
+
+                elif how in ["1", "2", "3"]:
+
+                    break
+
+                else:
+
+                    print("Invalid choice. Please choose again.")
+
+                    continue
+
+            if how == "0":
+
+                continue
+
+
+            # We initialize number_of_games to avoid NameError
+            number_of_games = 0
+
+            if how == "1":
+
+                number_of_games = 1
+
+                url = f"https://lichess.org/api/games/user/{username}?max=1&rated=true&opening=true"
+
+            elif how == "2":
+                number_of_games = int(
+                    input("Enter the number of categorized games you want to include: ")
+                )
+                url = f"https://lichess.org/api/games/user/{username}?max={number_of_games}&rated=true&opening=true"
+
+            elif how == "3":
+                # Fixed typo: 'combin' changed to 'combine'
+                today_start = dt.datetime.combine(dt.date.today(), dt.time.min)
+                timestamp = int(today_start.timestamp() * 1000)
+                url = f"https://lichess.org/api/games/user/{username}?since={timestamp}&rated=true&opening=true"
+
+            # Dynamic status message based on user selection to prevent errors
+            if how in ["1", "2"]:
+                print(
+                    f"⏳ Connecting to Lichess to fetch the last {number_of_games} rated matches..."
+                )
+            elif how == "3":
+                print(f"⏳ Connecting to Lichess to fetch today's rated matches...")
+
+            # 3. Send request to Lichess API
+            response = requests.get(url)
+
+            if response.status_code == 200:
+                # Convert response text into a readable data stream
+                pgn_data = io.StringIO(response.text)
+                game_counter = 0
+
+                # 4. Smart loop to process matches one by one
+                while True:
+                    game = chess.pgn.read_game(pgn_data)
+
+                    # If no more games are available, break the loop
+                    if game is None:
+                        break
+
+                    # 5. Extract PGN headers
+                    opening = game.headers.get("Opening", "Unknown")
+                    white_player = game.headers.get("White")
+                    black_player = game.headers.get("Black")
+                    white_elo = game.headers.get("WhiteElo")
+                    black_elo = game.headers.get("BlackElo")
+                    raw_result = game.headers.get("Result")
+
+                    # 6. Dynamic Logic to determine your color, rating, opponent rating, and exact result
+                    if white_player.lower() == username.lower():
+                        colore = "White"
+                        rating = white_elo
+                        discount = black_elo  # Opponent rating
+
+                        # Determine result relative to you
+                        if raw_result == "1-0":
+                            result = "Win"
+                        elif raw_result == "0-1":
+                            result = "Loss"
+                        else:
+                            result = "Draw"
+                    else:
+                        colore = "Black"
+                        rating = black_elo
+                        discount = white_elo  # Opponent rating
+
+                        # Determine result relative to you
+                        if raw_result == "0-1":
+                            result = "Win"
+                        elif raw_result == "1-0":
+                            result = "Loss"
+                        else:
+                            result = "Draw"
+
+                    # 7. Execute MySQL Insertion instead of printing
+                    cr.execute(
+                        "INSERT INTO Chess_analysis (color_of_the_pieces, opening_name, opponent_rating, your_rating, the_result) VALUES (%s, %s, %s, %s, %s)",
+                        (colore, opening, discount, rating, result),
+                    )
+
+                    game_counter += 1
+
+                print(
+                    f"\n✅ Successfully processed and inserted {game_counter} matches into the database!"
+                )
+
+            else:
+                print(
+                    "❌ Connection failed. Please check your internet connection or username."
+                )
 
     def show_analysis(cr):
             
@@ -580,6 +732,7 @@ try:
 
             if check_int_search(search) == False:
 
+
                 continue
 
             else:
@@ -671,24 +824,32 @@ try:
 
                     op = input("Do you want to search for ratings greater than, less than, or equal to a specific value? (Enter >, <, =, # => back): ").strip()
 
-                    if op == "#":
+                    if check_symblos(op) == False:
+
+                        print("Invalid entry. Please enter the code from the options.")
+
+                        continue
+
+                    elif check_symblos(op) == '#':
 
                         break
+
+                    else:
+
+                        op = check_symblos(op)
 
                     
                     while True:
 
-                        raw_input =input("Enter your rating (# => back)): ").strip()
+                        raw_input = input("Enter your rating (# => back)): ").strip()
 
-                        if raw_input == '#':
+                        if check_int_search(raw_input) == False:
 
-                            break
+                            continue
                             
                         else:
 
-                            raw_input = int(raw_input)
-
-                                    
+                            raw_input = int(raw_input)      
 
                         break
 
@@ -739,24 +900,36 @@ try:
 
                     op = input("Do you want to search for ratings greater than, less than, or equal to a specific value? (Enter >, <, =, #=> back): ").strip()
 
-                    if op == "#":
+                    if check_symblos(op) == False:
+
+                        print("Invalid entry. Please enter the code from the options.")
+
+                        continue
+
+                    elif check_symblos(op) == "#":
 
                         break
 
+                    else:
+
+                        op = check_symblos(op)
+
                     while True:
 
-                        raw_input = input("Enter your rating (#=> back)): ").strip()
+                        raw_input = input("Enter opponent rating (#=> back)): ").strip()
 
-                        if raw_input == '#':
+                        if check_int_search(raw_input) == False:
+
+                            continue
+
+                        elif raw_input == '#':
 
                             break
 
                         else:
 
                             raw_input = int(raw_input)
-                            
-                                    
-
+                          
                         break
 
                     if raw_input == '#':
@@ -968,26 +1141,78 @@ try:
 
     def DELETE_match(cr):
         while True:
-            
-            match_id = input("Enter the ID of the match you want to delete: (0=> back) ")
 
-            if check_int_search(match_id) == False:
-
-                continue
-
-            elif match_id == "0":
+            how = input ("Do you want to delete a specific match or a number of matches? (1 = specific match, 2 = number of matches, (0=> back): ")
+           
+            if how == "0":
 
                 break
 
-            else:
+            elif check_int_list_two(how) == False:
 
-                match_id = int(match_id)
+                continue
 
-            cr.execute("DELETE FROM Chess_analysis WHERE id = %s", (match_id,))
+            if how == '1':
+        
+                match_id = input("Enter the ID of the match you want to delete: (0=> back) ")
 
-            db.commit()
+                if check_int_DELETE(match_id) == False:
 
-        print("Match deleted successfully")
+                    continue
+
+                elif match_id == "0":
+
+                    break
+
+                else:
+
+                    match_id = int(match_id)
+
+                cr.execute("DELETE FROM Chess_analysis WHERE id = %s", (match_id,))
+
+                db.commit()
+
+                print("Match deleted successfully")
+
+            if how == '2':
+
+                while True:
+
+                    how_many_1 = input("From match number : (0=> back) ")
+
+                    if check_int_DELETE(how_many_1) == "0":
+
+                        break
+                
+                    elif check_int_DELETE(how_many_1) == False :
+
+                        continue
+
+
+
+                    else:
+
+                        how_many_1 = int(how_many_1) 
+
+                    how_many_2 = input("To match number : (0=> back) ")
+
+                    if check_int_DELETE(how_many_2) == False:
+
+                        continue
+
+                    elif how_many_2 == "0":
+
+                        break
+
+                    else:
+
+                        how_many_2 = int(how_many_2)
+
+                    cr.execute("DELETE FROM Chess_analysis WHERE id BETWEEN %s AND %s", (how_many_1, how_many_2))
+
+                    db.commit()
+
+                    print("Matches deleted successfully")
 
     
     def show_day_analysis(cr):
@@ -1128,7 +1353,7 @@ try:
 
             print(f" The opening match saw many wins.: {n[0]}")
 
-        cr.execute("SELECT color_of_the_pieces, count(*) AS counted FROM Chess_analysis WHERE the_result = %s and MONTH(created_at) = MONTH(created_at)and YEAR(created_at) = YEAR(CURDATE()) GROUP BY color_of_the_pieces ORDER BY counted DESC LIMIT 1", ('win',))
+        cr.execute("SELECT color_of_the_pieces, count(*) AS counted FROM Chess_analysis WHERE the_result = %s and MONTH(created_at) = MONTH(CURDATE())and YEAR(created_at) = YEAR(CURDATE()) GROUP BY color_of_the_pieces ORDER BY counted DESC LIMIT 1", ('win',))
 
         result = cr.fetchall()
 
@@ -1259,10 +1484,11 @@ try:
     info = """
     What do you want to do?
     1=> Record a new match
-    2=> Statistics presentation and analysis
-    3=> search for matches
-    4=> UPDATE a match
-    5=> Delete a match
+    2=> Automatic registration
+    3=> Statistics presentation and analysis
+    4=> search for matches
+    5=> UPDATE a match
+    6=> Delete a match
     0=> Exit
     """
 
@@ -1291,18 +1517,22 @@ try:
 
         elif choice == 2:
 
-            show_analysis(cr)
+            Automatic_registration(cr)
 
         elif choice == 3:
 
-            search_matches(cr)
+            show_analysis(cr)
 
         elif choice == 4:
+
+            search_matches(cr)
+
+        elif choice == 5:
 
             update_match(cr)
 
 
-        elif choice == 5:
+        elif choice == 6:
        
             DELETE_match(cr)
 
